@@ -3,17 +3,19 @@ date: 2015-07-26 16:26:27
 tags: nodejs
 ---
 
-##需求
+## 需求
 
 在做 [多host工具](https://github.com/liyangready/multiple-host) 项目时，我需要一个透明代理，让浏览器的所有的请求通过一个nodejs server转发，从而可以实现修改请求的目的。问题就是，如何构建一个能够同时支持http && https的web proxy。
 
-##http
+<!--more-->
+
+## http
 
 支持http请求有非常简单，通过 http.createSever起一个服务，然后让浏览器设置代理到这个server， 在 server 的 req 中能够拿到原请求头的所有信息，我们解析出host之后请求远端服务器，回数了之后再传给浏览器。
 
 两个方法： `http.createServer` 和 `http.request` 能够轻松搞定，要注意的就是由于http 1.1的存在，最好是用流来解决。
 
-##https
+## https
 
 https不能同http一样的思路，为什么？ 我们先看看https的基本知识。
 
@@ -24,7 +26,7 @@ https不能同http一样的思路，为什么？ 我们先看看https的基本�
 
 + client 给服务器端发送一个hello信息(包含支持什么协议/解密方法/随机数等)
 + 服务器端返回一个hello信息(包含使用了什么加密算法)和证书(由CA通过SHA1签名，包括服务器端的公钥)
-+ client信任CA的证书，所有信任server端的公钥，通过公钥加密一个随机数发给服务器端
++ client信任CA的证书，进而信任server端的公钥，通过公钥加密一个随机数发给服务器端
 + 服务器端通过私钥解密，协商出一个新的对称加密秘钥(因为对称加密快，非对称太消耗性能，只能用于刚开始的协商阶段)和方法，返给客户端。
 + 客户端和服务器端使用对称加密传输信息。
 
@@ -39,7 +41,6 @@ var net = require("net");
 net.createServer(function(connect) {
 	console.log("client connected");
 	connect.on("data", function(data) {
-		debugger
 		console.log(data.toString());
 		//解析头，然后做net.connet...
 	});
@@ -49,10 +50,10 @@ net.createServer(function(connect) {
 }).listen(9393);
 
 </pre>
-打开系统代理设置，把代理设置成 127.0.0.1:9393，然后通过浏览器访问http和https的网站，发现都能被记录下来。
-
+打开系统代理设置，把代理设置成 127.0.0.1:9393，然后通过浏览器访问http和https的网站，发现都能被记录下来。     
+             
 **http console**:
-
+                      
 <pre>
 $ node test.js
 client connected
@@ -67,9 +68,9 @@ Proxy-Connection: Keep-Alive
 Cookie: BAIDUID=079434675F842CCB0BC016833D11806F:FG=1; Hm_lvt_22661fc940aadd927d385f4a67892bc3=1426167798,1426212566; HUM=; HUN=; m
  hz=0
 </pre>
-
+           
 **https console**
-
+            
 <pre>
 client connected
 CONNECT www.baidu.com:443 HTTP/1.0
@@ -79,12 +80,15 @@ Content-Length: 0
 DNT: 1
 Proxy-Connection: Keep-Alive
 Pragma: no-cache
-</pre>
-这个方案很可行，通过 nodejs的 `net` 模块可以建立socket连接。
+</pre> 
 
-写了一半放弃的原因是，这个方案的确可以完美实现需求，但是需要自己去处理 http和https协议头，比如说通过socket协议来了一个请求，我想知道http头里面的host port等等信息，都只能从数据流中再做字符串解析，特别麻烦，而用http.createServer这种方法，实际上是可以使用已经封装好的方法来处理头信息。于是我在想有没有更简单的办法实现？
+这个方案很可行，通过 nodejs的  `net`  模块可以建立socket连接。
 
-##方案二
+写了一半放弃的原因是，这个方案的确可以完美实现需求，但是需要自己去处理 http和https协议头，比如说通过socket协议来了一个请求，我想知道http头里面的host port等等信息，都只能从数据流中再做字符串解析，特别麻烦，而用http.createServer这种方法，实际上是可以使用已经封装好的方法来处理头信息。于是我在想有没有更简单的办法实现？         
+
+
+## 方案二
+
 我们在上面的 net server中看到一个奇怪的东西，就是 https的console竟然会以明文的形式出现：
 <pre>
 client connected
