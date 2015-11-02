@@ -25,6 +25,8 @@ tags: promise
 	});
 	</pre>
 
+<!-- more -->
+
 单从上述方法其实并不能看出来promise的优势，一个callback改成了一个then而已，我们看多个异步操作的情况:
 
 <pre>
@@ -193,5 +195,5 @@ return 一个promise后，新生成的promise2将会等待这个返回的promise
 
 4 [谈谈使用 promise 时候的一些反模式](http://efe.baidu.com/blog/promises-anti-pattern/?utm_source=tuicool)
 
-# 进阶
+
 
